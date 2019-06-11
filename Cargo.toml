@@ -1,0 +1,28 @@
+[package]
+name = "front_raw_mystore"
+version = "0.1.0"
+authors = ["werner <werner_a_e@yahoo.es>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+futures = "0.1.20"
+wasm-bindgen = { version = "0.2.45", features = ["serde-serialize"]  }
+js-sys = "0.3.22"
+wasm-bindgen-futures = "0.3.22"
+serde = { version = "1.0.80", features = ["derive"] }
+serde_derive = "^1.0.59"
+serde_json = "1"
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+  'Headers',
+  'Request',
+  'RequestInit',
+  'RequestMode',
+  'Response',
+  'Window',
+]
