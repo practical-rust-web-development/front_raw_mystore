@@ -10,6 +10,11 @@ pub struct RegisterUser {
     pub password_confirmation: String
 }
 
+#[wasm_bindgen(module = "javascripts/router.js")]
+extern "C" {
+    fn init_router(app: Option<web_sys::Element>);
+}
+
 #[wasm_bindgen(start)]
 pub fn run() -> Result<(), JsValue> {
     let window = web_sys::window().expect("no global `window` exists");
@@ -17,6 +22,8 @@ pub fn run() -> Result<(), JsValue> {
     let body = document.body().expect("document should have a body");
 
     let app = document.get_element_by_id("app");
+
+    init_router(app);
 
     Ok(())
 }
