@@ -28,5 +28,10 @@ features = [
   'Document',
   'Element',
   'HtmlElement',
-  'Node'
+  'Node',
+  'History',
+  'Event',
+  'EventTarget',
+  'Location',
+  'console'
 ]
