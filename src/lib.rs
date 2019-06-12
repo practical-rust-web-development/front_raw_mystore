@@ -24,11 +24,10 @@ pub fn run() -> Result<(), JsValue> {
     let button = document.get_element_by_id("go_to_register").unwrap();
     let button_et: web_sys::EventTarget = button.into();
 
-    let router = router::Router(app);
-
-    let show_register = Closure::wrap(Box::new(move |router: router::Router| {
+    let show_register = Closure::wrap(Box::new(move || {
+        let router = router::Router(Some(&app));
         router.go_to("register", "");
-    }) as Box<dyn FnMut(_)>);
+    }) as Box<dyn FnMut()>);
 
     button_et.add_event_listener_with_callback("click", show_register.as_ref().unchecked_ref());
 
