@@ -1,7 +1,9 @@
 use std::sync::Arc;
 use wasm_bindgen::JsValue ;
 use crate::app::App;
+use crate::components::component::Component;
 
+#[derive(Clone)]
 pub struct Register {
     url: String,
     app: Arc<App>
@@ -11,11 +13,12 @@ impl Register {
     pub fn new(url: String, app: Arc<App>) -> Self {
         Register { url, app }
     }
+}
 
-    pub fn render(&self) -> Result<(), JsValue> {
-        self.app.go_to(&self.url, "")?;
-        self.load_components()
-    }
+impl Component for Register {
+    fn app(&self) -> Arc<App> { self.app.clone() }
+
+    fn url(&self) -> String { self.url.clone() }
 
     fn load_components(&self) -> Result<(), JsValue> {
 
@@ -26,5 +29,4 @@ impl Register {
 
         Ok(())
     }
-
 }

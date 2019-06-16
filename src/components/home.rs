@@ -3,8 +3,10 @@ use std::sync::Arc;
 use wasm_bindgen::{ JsValue, JsCast };
 use web_sys::EventTarget;
 use crate::app::App;
-use crate::components::register::Register;
+use crate::components::register;
+use crate::components::component::Component;
 
+#[derive(Clone)]
 pub struct Home {
     url: String,
     app: Arc<App>
@@ -14,11 +16,12 @@ impl Home {
     pub fn new(url: String, app: Arc<App>) -> Self {
         Home { url, app }
     }
+}
 
-    pub fn render(&self) -> Result<(), JsValue> {
-        self.app.go_to(&self.url, "")?;
-        self.load_components()
-    }
+impl Component for Home {
+    fn app(&self) -> Arc<App> { self.app.clone() }
+
+    fn url(&self) -> String { self.url.clone() }
 
     fn load_components(&self) -> Result<(), JsValue> {
 
@@ -39,9 +42,7 @@ impl Home {
         
         let handler = 
             Closure::wrap(Box::new(move || {
-                app_closure.go_to("register", "");
-                let component = Register::new("register".to_string(), app_closure.clone());
-                component.render();
+                register::Register::new("register".to_string(), app_closure.clone()).render();
             }) as Box<dyn FnMut()>);
 
         button_et.add_event_listener_with_callback("click", handler.as_ref().unchecked_ref())?;
