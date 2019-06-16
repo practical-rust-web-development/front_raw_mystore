@@ -1,22 +1,12 @@
 use wasm_bindgen::prelude::*;
-use web_sys::{ EventTarget, window };
-use serde::{Deserialize, Serialize};
+use web_sys::window;
 use std::sync::Arc;
 use wasm_bindgen::JsCast;
-use crate::app::App;
 
 mod fetch;
 mod router;
 mod app;
 mod components;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RegisterUser {
-    pub email: String,
-    pub company: String,
-    pub password: String,
-    pub password_confirmation: String
-}
 
 #[wasm_bindgen(start)]
 pub fn run() -> Result<(), JsValue> {
