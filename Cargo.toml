@@ -38,6 +38,7 @@ features = [
   'History',
   'Event',
   'EventTarget',
+  'ErrorEvent',
   'Location',
   'console'
 ]

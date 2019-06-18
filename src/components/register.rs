@@ -1,17 +1,12 @@
 use std::sync::Arc;
-use std::rc::Rc;
 use serde_json::json;
 use wasm_bindgen::{ JsValue, JsCast };
 use wasm_bindgen::closure::Closure;
-use wasm_bindgen_futures::JsFuture;
-use wasm_bindgen_futures::future_to_promise;
-use futures::{ future, Future};
-use web_sys::{ HtmlInputElement, HtmlButtonElement, EventTarget };
+use web_sys::{ HtmlButtonElement, EventTarget, ErrorEvent };
 use serde::{Deserialize, Serialize};
 use crate::app::App;
 use crate::components::component::{ Component, InputComponent };
 use crate::fetch::post_request;
-use crate::components::home;
 use crate::components;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -58,41 +53,21 @@ impl Component for Register {
 
         let form = self.app.document.create_element("form")?;
 
-        let email_div = self.app.document.create_element("div")?;
-        email_div.set_class_name("from-group");
-        let input_email_element = self.app.document.create_element("input")?;
-        input_email_element.set_id("email");
-        let input_email = JsCast::dyn_ref::<HtmlInputElement>(&input_email_element)
-            .ok_or(JsValue::from_str("Error casting input"))?;
-        input_email.set_placeholder("Email");
-        email_div.append_child(input_email)?;
+        let email_div = 
+            InputComponent(self.app.document.clone())
+                .create_input("email", "email", "Email")?;
 
-        let company_div = self.app.document.create_element("div")?;
-        company_div.set_class_name("from-group");
-        let input_company_element = self.app.document.create_element("input")?;
-        input_company_element.set_id("company");
-        let input_company = JsCast::dyn_ref::<HtmlInputElement>(&input_company_element)
-            .ok_or(JsValue::from_str("Error casting input"))?;
-        input_company.set_placeholder("Company");
-        company_div.append_child(input_company)?;
+        let company_div = 
+            InputComponent(self.app.document.clone())
+                .create_input("company", "company", "Company")?;
 
-        let password_div = self.app.document.create_element("div")?;
-        password_div.set_class_name("from-group");
-        let input_password_element = self.app.document.create_element("input")?;
-        input_password_element.set_id("password");
-        let input_password = JsCast::dyn_ref::<HtmlInputElement>(&input_password_element)
-            .ok_or(JsValue::from_str("Error casting input"))?;
-        input_password.set_placeholder("Password");
-        password_div.append_child(input_password)?;
+        let password_div = 
+            InputComponent(self.app.document.clone())
+                .create_input("password", "password", "Password")?;
 
-        let password_confirmation_div = self.app.document.create_element("div")?;
-        password_confirmation_div.set_class_name("from-group");
-        let input_password_confirmation_element = self.app.document.create_element("input")?;
-        input_password_confirmation_element.set_id("password_confirmation");
-        let input_password_confirmation = JsCast::dyn_ref::<HtmlInputElement>(&input_password_confirmation_element)
-            .ok_or(JsValue::from_str("Error casting input"))?;
-        input_password_confirmation.set_placeholder("Password Confirmation");
-        password_confirmation_div.append_child(input_password_confirmation)?;
+        let password_confirmation_div = 
+            InputComponent(self.app.document.clone())
+                .create_input("password_confirmation", "password_confirmation", "Password Confirmation")?;
 
         let button_element = self.app.document.create_element("button")?;
         let button = JsCast::dyn_ref::<HtmlButtonElement>(&button_element)
@@ -113,6 +88,7 @@ impl Component for Register {
 
         let document = self.app.document.clone();
         let app_closure = self.app.clone();
+        let form_closure = Arc::new(form);
         let handler = 
             Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
                 event.prevent_default();
@@ -124,14 +100,23 @@ impl Component for Register {
                     password_confirmation: InputComponent(document.clone()).value_by_id("password_confirmation")
                 };
                 let serialized_register_user = json!(register_user).to_string();
+                let app_success_closure = app_closure.clone();
                 let success_response = 
                     Closure::once(move |js_value: JsValue| {
-                        web_sys::console::log_1(&js_value);
-                        //components::routes::Routes::new(app_closure.clone()).go_to("/home".to_string());
+                        components::routes::Routes::new(app_success_closure)
+                            .go_to("/home".to_string());
                     });
+                let error_form_closure = form_closure.clone();
+                let app_error_closure = app_closure.clone();
                 let error_response = 
                     Closure::once(move |js_value: JsValue| {
-                        web_sys::console::log_1(&js_value);
+                        let response: &ErrorEvent = js_value.as_ref().unchecked_ref();
+                        let text = response.message();
+                        let alert_error = app_error_closure.document.create_element("div")
+                            .expect("Creating alert not possible");
+                        alert_error.set_class_name("alert.alert-danger");
+                        alert_error.set_text_content(Some(&text));
+                        error_form_closure.append_child(&alert_error);
                     });
                 post_request("register", serialized_register_user)
                     .then(&success_response)
