@@ -1,6 +1,5 @@
 use futures::Future;
 use js_sys::Promise;
-use serde_json::json;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::future_to_promise;
@@ -11,7 +10,9 @@ use serde::Serialize;
 const BASE_URL: &str = "http://localhost:8088";
 
 #[wasm_bindgen]
-pub fn fetch_request(url: &str, method: &str, body: Option<String>) -> Result<Promise, JsValue> {
+pub fn fetch_request(url: &str,
+                     method: &str,
+                     body: Option<String>) -> Promise {
     let mut opts = RequestInit::new();
     opts.method(method);
     opts.mode(RequestMode::Cors);
@@ -20,14 +21,16 @@ pub fn fetch_request(url: &str, method: &str, body: Option<String>) -> Result<Pr
         opts.body(Some(&js_value));
     }
 
-    let request = Request::new_with_str_and_init(&format!("{}/{}", BASE_URL, url), &opts)?;
+    let request = Request::new_with_str_and_init(&format!("{}/{}", BASE_URL, url), &opts).unwrap();
 
     request
         .headers()
-        .set("Content-Type", "application/json")?;
+        .set("Content-Type", "application/json").unwrap();
 
-    let window = web_sys::window().ok_or_else(|| JsValue::from_str("Could not get a window object"))?;
-    let request_promise = window.fetch_with_request(&request);
+    let window = web_sys::window().ok_or_else(|| JsValue::from_str("Could not get a window object")).unwrap();
+    let request_promise = 
+        window
+            .fetch_with_request(&request);
 
     let future = JsFuture::from(request_promise)
         .and_then(|resp_value| {
@@ -38,17 +41,16 @@ pub fn fetch_request(url: &str, method: &str, body: Option<String>) -> Result<Pr
         .and_then(|json_value: Promise| {
             JsFuture::from(json_value)
         });
-
-    Ok(future_to_promise(future))
+    
+    future_to_promise(future)
 }
 
-pub fn post_request<T>(url: &str, body: &T) -> Result<Promise, JsValue> 
-    where T: Serialize {
-
-        let serialized_body = json!(body).to_string();
-        fetch_request(url, "POST", Some(serialized_body))
+#[wasm_bindgen]
+pub fn post_request(url: &str, body: String) -> Promise {
+    fetch_request(url, "POST", Some(body))
 }
 
-pub fn get_request(url: &str) -> Result<Promise, JsValue>  {
+#[wasm_bindgen]
+pub fn get_request(url: &str) -> Promise  {
     fetch_request(url, "GET", None)
 }

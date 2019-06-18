@@ -1,11 +1,18 @@
 use std::sync::Arc;
+use std::rc::Rc;
+use serde_json::json;
 use wasm_bindgen::{ JsValue, JsCast };
 use wasm_bindgen::closure::Closure;
-use web_sys::{ HtmlInputElement, HtmlButtonElement, HtmlFormElement, EventTarget };
+use wasm_bindgen_futures::JsFuture;
+use wasm_bindgen_futures::future_to_promise;
+use futures::{ future, Future};
+use web_sys::{ HtmlInputElement, HtmlButtonElement, EventTarget };
 use serde::{Deserialize, Serialize};
 use crate::app::App;
 use crate::components::component::{ Component, InputComponent };
 use crate::fetch::post_request;
+use crate::components::home;
+use crate::components;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RegisterUser {
@@ -105,16 +112,32 @@ impl Component for Register {
         let button_et: EventTarget = button_element.into();
 
         let document = self.app.document.clone();
+        let app_closure = self.app.clone();
         let handler = 
             Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
                 event.prevent_default();
                 event.stop_propagation();
-                post_request("register", &RegisterUser{
+                let register_user = RegisterUser{
                     email: InputComponent(document.clone()).value_by_id("email"),
                     company: InputComponent(document.clone()).value_by_id("company"),
                     password: InputComponent(document.clone()).value_by_id("password"),
                     password_confirmation: InputComponent(document.clone()).value_by_id("password_confirmation")
-                });
+                };
+                let serialized_register_user = json!(register_user).to_string();
+                let success_response = 
+                    Closure::once(move |js_value: JsValue| {
+                        web_sys::console::log_1(&js_value);
+                        //components::routes::Routes::new(app_closure.clone()).go_to("/home".to_string());
+                    });
+                let error_response = 
+                    Closure::once(move |js_value: JsValue| {
+                        web_sys::console::log_1(&js_value);
+                    });
+                post_request("register", serialized_register_user)
+                    .then(&success_response)
+                    .catch(&error_response);
+                error_response.forget();
+                success_response.forget();
             }) as Box<dyn FnMut(_)>);
 
         button_et.add_event_listener_with_callback("click", handler.as_ref().unchecked_ref())?;

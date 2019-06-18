@@ -8,8 +8,14 @@ mod router;
 mod app;
 mod components;
 
+#[wasm_bindgen]
+pub fn init() {
+    console_error_panic_hook::set_once();
+}
+
 #[wasm_bindgen(start)]
 pub fn run() -> Result<(), JsValue> {
+    init();
     let application = Arc::new(app::App::new());
 
     let window = window().expect("no global `window` exists");
