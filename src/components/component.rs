@@ -27,6 +27,7 @@ impl InputComponent {
             let input = JsCast::dyn_ref::<HtmlInputElement>(&input_element)
                 .ok_or(JsValue::from_str("Error casting input"))?;
             input.set_placeholder(placeholder);
+            input.set_class_name("form-control");
             input.set_name(name);
             div.append_child(input);
             Ok(div)

@@ -48,6 +48,7 @@ impl Component for Register {
     fn load_components(&self) -> Result<(), JsValue> {
 
         let main_div = self.app.document.create_element("div")?;
+        main_div.set_class_name("container");
         let h2_title = self.app.document.create_element("h2")?;
         h2_title.set_text_content(Some("Register an User"));
 
@@ -72,6 +73,7 @@ impl Component for Register {
         let button_element = self.app.document.create_element("button")?;
         let button = JsCast::dyn_ref::<HtmlButtonElement>(&button_element)
             .ok_or(JsValue::from_str("Error casting input"))?;
+        button.set_class_name("btn btn-primary");
         button.set_text_content(Some("Send"));
         button.set_type("Submit");
 
@@ -114,7 +116,7 @@ impl Component for Register {
                         let text = response.message();
                         let alert_error = app_error_closure.document.create_element("div")
                             .expect("Creating alert not possible");
-                        alert_error.set_class_name("alert.alert-danger");
+                        alert_error.set_class_name("alert alert-danger");
                         alert_error.set_text_content(Some(&text));
                         error_form_closure.append_child(&alert_error);
                     });
