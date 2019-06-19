@@ -16,10 +16,8 @@ impl Router {
         Router { history, location }
     }
 
-    pub fn go_to(&self, url: &str, state: &str) -> Result<(), JsValue> {
-        let data = JsValue::from_str(state);
-
-        self.history.push_state_with_url(&data, 
+    pub fn go_to(&self, url: &str, state: &JsValue) -> Result<(), JsValue> {
+        self.history.push_state_with_url(state, 
             url, Some(&format!("{}/{}", self.location.origin().unwrap(), url)))
     }
 }

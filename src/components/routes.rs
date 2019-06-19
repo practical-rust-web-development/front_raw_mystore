@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
+use wasm_bindgen::JsValue;
 use crate::components::component::Component;
 use crate::components;
 use crate::app::App;
@@ -18,11 +19,11 @@ impl Routes {
         routes
     }
 
-    pub fn go_to(&self, url: String) {
-        self.0.get(&url).expect("Component not created").render();
+    pub fn go_to(&self, url: String, state: &JsValue) {
+        self.0.get(&url).expect("Component not created").render(state);
     }
 
-    pub fn load_components(&self, url: String) {
-        self.0.get(&url).expect("Component not created").load_components();
+    pub fn load_components(&self, url: String, state: &JsValue ) {
+        self.0.get(&url).expect("Component not created").load_components(state);
     }
 }

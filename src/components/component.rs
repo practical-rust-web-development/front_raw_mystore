@@ -2,23 +2,29 @@ use std::sync::Arc;
 use wasm_bindgen::JsValue;
 use web_sys::{ HtmlInputElement, Document, Element };
 use wasm_bindgen::JsCast;
+use serde::{Deserialize, Serialize};
 use crate::app::App;
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FlashMessage {
+    pub message: String
+}
+
 pub trait Component {
-    fn load_components(&self) -> Result<(), JsValue>;
+    fn load_components(&self, data: &JsValue) -> Result<(), JsValue>;
     fn app(&self) -> Arc<App>;
     fn url(&self) -> String;
-    fn render(&self) -> Result<(), JsValue> {
+    fn render(&self, state: &JsValue) -> Result<(), JsValue> {
         self.app().div.set_inner_html("");
-        self.load_components()?;
-        self.app().go_to(&self.url(), "")
+        self.load_components(state)?;
+        self.app().go_to(&self.url(), state)
     }
 }
 
 pub struct InputComponent(pub Arc<Document>);
 
 impl InputComponent {
-    pub fn create_input(&self, id: &str, name: &str, placeholder: &str) 
+    pub fn create_input(&self, id: &str, name: &str, ttype: &str, placeholder: &str) 
         -> Result<Element, JsValue> {
             let div = self.0.create_element("div")?;
             div.set_class_name("from-group");
@@ -29,6 +35,7 @@ impl InputComponent {
             input.set_placeholder(placeholder);
             input.set_class_name("form-control");
             input.set_name(name);
+            input.set_type(ttype);
             div.append_child(input);
             Ok(div)
     }

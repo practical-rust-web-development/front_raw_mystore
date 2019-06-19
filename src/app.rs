@@ -1,10 +1,11 @@
 use wasm_bindgen::JsValue;
-use web_sys::{ Document, Element, window };
+use web_sys::{ Window, Document, Element, window };
 use std::sync::Arc;
 use crate::router::Router;
 
 pub struct App {
     pub div: Arc<Element>,
+    pub window: Arc<Window>,
     pub document: Arc<Document>,
     pub router: Arc<Router>
 }
@@ -17,13 +18,14 @@ impl App {
         let app = document.get_element_by_id("app").expect("A div with id app is required");
 
         App {
+            window: Arc::new(window),
             div: Arc::new(app),
             document: Arc::new(document),
             router: Arc::new(Router::new()) 
         }
     }
 
-    pub fn go_to(&self, url: &str, state: &str) -> Result<(), JsValue> {
+    pub fn go_to(&self, url: &str, state: &JsValue) -> Result<(), JsValue> {
         self.router.go_to(url, state)
     }
 }

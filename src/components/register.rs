@@ -5,7 +5,7 @@ use wasm_bindgen::closure::Closure;
 use web_sys::{ HtmlButtonElement, EventTarget, ErrorEvent };
 use serde::{Deserialize, Serialize};
 use crate::app::App;
-use crate::components::component::{ Component, InputComponent };
+use crate::components::component::{ Component, InputComponent, FlashMessage };
 use crate::fetch::post_request;
 use crate::components;
 
@@ -45,7 +45,7 @@ impl Component for Register {
 
     fn url(&self) -> String { self.url.clone() }
 
-    fn load_components(&self) -> Result<(), JsValue> {
+    fn load_components(&self, data: &JsValue) -> Result<(), JsValue> {
 
         let main_div = self.app.document.create_element("div")?;
         main_div.set_class_name("container");
@@ -56,19 +56,19 @@ impl Component for Register {
 
         let email_div = 
             InputComponent(self.app.document.clone())
-                .create_input("email", "email", "Email")?;
+                .create_input("email", "email", "text", "Email")?;
 
         let company_div = 
             InputComponent(self.app.document.clone())
-                .create_input("company", "company", "Company")?;
+                .create_input("company", "company", "text", "Company")?;
 
         let password_div = 
             InputComponent(self.app.document.clone())
-                .create_input("password", "password", "Password")?;
+                .create_input("password", "password", "password", "Password")?;
 
         let password_confirmation_div = 
             InputComponent(self.app.document.clone())
-                .create_input("password_confirmation", "password_confirmation", "Password Confirmation")?;
+                .create_input("password_confirmation", "password_confirmation", "password", "Password Confirmation")?;
 
         let button_element = self.app.document.create_element("button")?;
         let button = JsCast::dyn_ref::<HtmlButtonElement>(&button_element)
@@ -105,8 +105,9 @@ impl Component for Register {
                 let app_success_closure = app_closure.clone();
                 let success_response = 
                     Closure::once(move |js_value: JsValue| {
+                        let message = FlashMessage { message: "User Created".to_string() };
                         components::routes::Routes::new(app_success_closure)
-                            .go_to("/home".to_string());
+                            .go_to("/home".to_string(), &JsValue::from_serde(&message).unwrap());
                     });
                 let error_form_closure = form_closure.clone();
                 let app_error_closure = app_closure.clone();
