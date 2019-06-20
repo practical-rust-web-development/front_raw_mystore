@@ -54,3 +54,8 @@ pub fn post_request(url: &str, body: String) -> Promise {
 pub fn get_request(url: &str) -> Promise  {
     fetch_request(url, "GET", None)
 }
+
+#[wasm_bindgen]
+pub fn delete_request(url: &str) -> Promise {
+    fetch_request(url, "DELETE", None)
+}
